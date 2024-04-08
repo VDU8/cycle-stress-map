@@ -36,8 +36,18 @@ function success(pos) {
 
   // Update map to new location but not zoom back in
   map.setView([lat, long]);
+
+
+  // Check if a destination is set
+  if (destination) {
+    // Create a polyline from the current position to the destination
+    const polyline = L.polyline([start, destination], { color: 'blue' }).addTo(map);
+  }
 }
 
+start = [33.75447, -84.38985]
+// Set a destination point
+destination = [33.75878, -84.37717];
 // User denies access to location info
 function error(err) {
   // User denied access

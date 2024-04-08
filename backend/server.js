@@ -10,9 +10,9 @@ const app = express();
 // Set up MySQL database
 const db = mysql.createConnection({
   host: "localhost",
-  user: "ph",
-  password: "password",
-  database: "stress_map_cycle_atl",
+  user: "root",
+  password: "root",
+  database: "st",
 });
 
 app.use(express.json());
@@ -27,6 +27,7 @@ app.get("/test", (req, res) => {
 app.get("/note", (req, res) => {
   // Query to get all lat and long data from note table
   const query = "SELECT id, latitude, longitude, details FROM note";
+  
 
   // Send query to db connection
   db.query(query, (err, data) => {
@@ -39,7 +40,7 @@ app.get("/note", (req, res) => {
 app.get("/trip", (req, res) => {
   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
   const query =
-    "SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=76;";
+    "SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=5;";
 
   // Send query to db connection
   db.query(query, (err, data) => {
