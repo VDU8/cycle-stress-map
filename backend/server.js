@@ -36,16 +36,34 @@ app.get("/note", (req, res) => {
   });
 });
 
-// Get trip coordinates with certain trip_id
-app.get("/trip", (req, res) => {
-  // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
-  const query =
-    "SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=5;";
+// // Get trip coordinates with certain trip_id
+// app.get("/trip/:trip_id", (req, res) => {
+//   const tripId = req.params.trip_id;
+//   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
+//   const query =
+//     `SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=${tripId};`;
+
+//   // Send query to db connection
+//   db.query(query, (err, data) => {
+//     if (err) return res.json(err); // When error occurs send client error code
+//     return res.json(data);
+//   });
+// });
+
+app.get("/trip/:trip_id", (req, res) => {
+  const tripId = req.params.trip_id;
+  const query = `SELECT response FROM osrmresp WHERE id=1;`;
 
   // Send query to db connection
   db.query(query, (err, data) => {
-    if (err) return res.json(err); // When error occurs send client error code
-    return res.json(data);
+    if (err) {
+      return res.json(err); // When error occurs send client error code
+    }
+
+    // Parse the JSON string into a JavaScript object
+    const responseData = JSON.parse(data[0].response);
+
+    return res.json(responseData);
   });
 });
 

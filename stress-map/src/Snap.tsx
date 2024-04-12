@@ -10,12 +10,13 @@ interface Coordinates {
 const MyMap: React.FC = () => {
   const [trip, setTrip] = useState<Coordinates[]>([]);
   const [step, setStep] = useState<number>(5);
+  const [tripId, settripId] = useState<number>(5);
   const mapRef = React.useRef<L.Map | null>(null);
 
   useEffect(() => {
     const fetchTripWithID = async () => {
       try {
-        const response = await axios.get<Coordinates[]>("http://localhost:4000/trip");
+        const response = await axios.get<Coordinates[]>(`http://localhost:4000/trip/${tripId}`);
         setTrip(response.data);
         console.log("Received trip data:", response.data);
         console.log("Received trip data length:", response.data.length);
@@ -25,7 +26,8 @@ const MyMap: React.FC = () => {
     };
 
     fetchTripWithID();
-  }, []);
+  }, [tripId]);
+
 
   useEffect(() => {
     if (trip.length === 0) return;
@@ -64,7 +66,8 @@ const MyMap: React.FC = () => {
 
     const sendOsrmRequest = async (lngLats: string[]) => {
       const radiuses = Array(lngLats.length).fill('49');
-      const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson&annotations=true`;
+      // const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson&annotations=true`;
+      const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson`;
       try {
         const response = await axios.get(url);
         return response.data;
@@ -103,11 +106,11 @@ const MyMap: React.FC = () => {
 
     let parts = 1;
     if (trip.length > 10000) {
-      parts = 200;
+      parts = 50;
     } else if (trip.length > 1000) {
-      parts = 100;
+      parts = 50;
     } else if (trip.length > 500) {
-      parts = 10;
+      parts = 5;
     } else if (trip.length > 100) {
       parts = 2;
     }
@@ -140,10 +143,10 @@ const MyMap: React.FC = () => {
         const latLngs: LatLngTuple[] = coordinates.map((coordinate: number[]) => [coordinate[1], coordinate[0]]);
         allLatLngs.push(...latLngs);
         const matchings = data.matchings[0];
-        matchings.legs.forEach((leg: any) => {
-          const legNodes = leg.annotation.nodes;
-          console.log('Nodes in this leg:', legNodes);
-        });
+        // matchings.legs.forEach((leg: any) => {
+        //   const legNodes = leg.annotation.nodes;
+        //   console.log('Nodes in this leg:', legNodes);
+        // });
       } else {
         console.error('OSRM response is not as expected:', data);
       }
@@ -157,12 +160,25 @@ const MyMap: React.FC = () => {
     setStep(Number(event.target.value));
   };
 
+  const handleTripIdChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    settripId(Number(event.target.value));
+  };
+
 
   return (
     <div>
       <div id="map" style={{ height: '1000px' }}></div>
       <input type="range" min="3" max="25" value={step} onChange={handleStepChange} />
       <p>Window Size: {step}</p>
+      <br></br>
+      <p>Select Trip ID</p>
+      <select value={tripId} onChange={handleTripIdChange}>
+          {/* Generate options for trip IDs from 1 to 2000 */}
+          {Array.from({ length: 2000 }, (_, index) => index + 1).map((id) => (
+            <option key={id} value={id}>{id}</option>
+          ))}
+        </select>
+     
     </div>
   );
 };
