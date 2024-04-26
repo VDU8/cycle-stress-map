@@ -7,7 +7,7 @@ mydb = mysql.connector.connect(
     password= "root",
     database= "st"
 )
-sql_query = "SELECT * FROM osrmresp"
+sql_query = "SELECT * FROM osr"
 
 # Execute the SQL query
 cursor = mydb.cursor()

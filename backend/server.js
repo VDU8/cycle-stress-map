@@ -36,34 +36,89 @@ app.get("/note", (req, res) => {
   });
 });
 
+app.get("/trip", (req, res) => {
+  // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
+  const query =
+    "SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=203;";
+
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) return res.json(err); // When error occurs send client error code
+    return res.json(data);
+  });
+});
+
 // // Get trip coordinates with certain trip_id
+app.get("/trip/:trip_id", (req, res) => {
+  const tripId = req.params.trip_id;
+  // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
+  const query =
+    `SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=${tripId};`;
+
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) return res.json(err); // When error occurs send client error code
+    return res.json(data);
+  });
+});
+
 // app.get("/trip/:trip_id", (req, res) => {
 //   const tripId = req.params.trip_id;
-//   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
-//   const query =
-//     `SELECT trip_id, latitude, longitude FROM coord WHERE trip_id=${tripId};`;
+//   const query = `SELECT response FROM osr WHERE trip_id=1;`;
 
 //   // Send query to db connection
 //   db.query(query, (err, data) => {
-//     if (err) return res.json(err); // When error occurs send client error code
-//     return res.json(data);
+//     if (err) {
+//       return res.json(err); // When error occurs send client error code
+//     }
+
+//     // Parse the JSON string into a JavaScript object
+//     const responseData = JSON.parse(data[0].response);
+
+//     return res.json(responseData);
 //   });
 // });
 
-app.get("/trip/:trip_id", (req, res) => {
-  const tripId = req.params.trip_id;
-  const query = `SELECT response FROM osrmresp WHERE id=1;`;
+//                                                                      TripID with all parts
+
+// app.get("/trip/:trip_id", (req, res) => {
+//   const tripId = req.params.trip_id;
+//   const query = `SELECT response, FROM osr WHERE trip_id=1;`;
+
+//   // Send query to db connection
+//   db.query(query, [tripId], (err, data) => {
+//     if (err) {
+//       return res.json(err); // When error occurs send client error code
+//     }
+
+//     // Combine all response parts into a single array
+//     const responseData = data.map(row => JSON.parse(row.response));
+
+//     return res.json(responseData);
+//   });
+// });
+
+app.get("/trips", (req, res) => {
+  const query = `SELECT trip_id, response FROM osr LIMIT 100;`;
 
   // Send query to db connection
   db.query(query, (err, data) => {
     if (err) {
-      return res.json(err); // When error occurs send client error code
+      return res.json(err); // When error occurs, send client error code
     }
 
-    // Parse the JSON string into a JavaScript object
-    const responseData = JSON.parse(data[0].response);
+    // Organize data by trip ID
+    const tripsData = {};
+    data.forEach(row => {
+      const tripId = row.trip_id;
+      const response = JSON.parse(row.response);
+      if (!tripsData[tripId]) {
+        tripsData[tripId] = [];
+      }
+      tripsData[tripId].push(response);
+    });
 
-    return res.json(responseData);
+    return res.json(tripsData);
   });
 });
 
