@@ -138,7 +138,7 @@ app.get("/trip/:trip_id", (req, res) => {
 // });
 
 app.get("/trips", (req, res) => {
-  const query = `SELECT trip_id, response FROM osr LIMIT 100;`;
+  const query = `SELECT trip_id, response FROM osr LIMIT 1000;`;
 
   // Send query to db connection
   db.query(query, (err, data) => {
