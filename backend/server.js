@@ -36,6 +36,45 @@ app.get("/note", (req, res) => {
   });
 });
 
+// Get all userinformation that were entered on Cycle ATL data
+app.get("/tripnote", (req, res) => {
+  // Query to get all lat and long data from note table
+  const query = "SELECT id, user_id, purpose, start, stop, n_coord FROM trip";
+  
+
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) return res.json(err); // When error occurs send client error code
+    return res.json(data);
+  });
+});
+
+app.get("/notescomments", (req, res) => {
+  // Query to get all lat and long data from note table
+  const query = "SELECT user_id, recorded, latitude, longitude, speed, details, text, note_type FROM noteinformation";
+  
+
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) return res.json(err); // When error occurs send client error code
+    return res.json(data);
+  });
+});
+
+app.get("/usernote", (req, res) => {
+  // Query to get all lat and long data from note table
+  const query = "SELECT user_id, created, device, email, schoolZIP, workZIP, agetype, cycling_freqtype, ethnicitytype, gendertype, incometype, rider_historytype, rider_info FROM userinformation";
+  
+
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) return res.json(err); // When error occurs send client error code
+    return res.json(data);
+  });
+});
+
+
+
 app.get("/trip", (req, res) => {
   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
   const query =

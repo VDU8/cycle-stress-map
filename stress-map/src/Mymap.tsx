@@ -306,19 +306,39 @@ interface Trip {
   matchings: { geometry: { coordinates: number[][] } }[];
 }
 
+interface TripInfo {
+  id: number;
+  n_coord: number;
+  purpose: string;
+  start: string;
+  stop: string;
+  user_id: number;
+}
+
+
 const MyMap: React.FC = () => {
   const [trips, setTrips] = useState
+  
   <Record<string, Trip[]>>({});
   const [currentTripIds, setCurrentTripIds] = useState({ start: 1, end: 10 });
+
+  const [tripinfo, setTripInfo] = useState<any>(null);
+  const [selectedTripInfo, setSelectedTripInfo] = useState<TripInfo | null>(null);
+  
+  const [userinfo, setUserInfo] = useState<any>(null);
+
+  const [showFilters, setShowFilters] = useState(false);
+
+const toggleFilters = () => {
+  setShowFilters(!showFilters);
+};
 
   const mapRef = React.useRef<L.Map | null>(null); // Ref to store map instance
 
   useEffect(() => {
     const fetchTripWithID = async () => {
       try {
-        const response = await axios.get
-
-        <Record<string, Trip[]>>("http://localhost:4000/trips");
+        const response = await axios.get<Record<string, Trip[]>>("http://localhost:4000/trips");
         setTrips(response.data);
         console.log("Received trip data:", response.data);
       } catch (error) {
@@ -328,6 +348,36 @@ const MyMap: React.FC = () => {
 
     fetchTripWithID();
   }, []);
+
+  useEffect(() => {
+  const fetchTripInfo = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/tripnote");
+      setTripInfo(response.data); // Assuming you have a state variable named tripInfo to store trip information
+      console.log("Received trip information:", response.data);
+    } catch (error) {
+      console.log("Error fetching trip data:", error);
+    }
+  };
+
+  fetchTripInfo();
+}, []);
+
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/tripnote");
+        setUserInfo(response.data); // Assuming you have a state variable named tripInfo to store trip information
+        console.log("Received trip information:", response.data);
+      } catch (error) {
+        console.log("Error fetching trip data:", error);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
 
   useEffect(() => {
     if (Object.keys(trips).length === 0) return; // Return if trip data is empty
@@ -411,14 +461,147 @@ const MyMap: React.FC = () => {
     setCurrentTripIds(prevIds => ({ start: Math.max(1, prevIds.start - 10), end: Math.max(10, prevIds.end - 10) }));
   };
 
+  // Add an event handler to update the selected trip's information
+const handleTripSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const selectedTripId = parseInt(event.target.value);
+  // Find the selected trip information from the tripinfo array
+  const selectedTrip = tripinfo.find((trip: TripInfo) => trip.id === selectedTripId);
+  setSelectedTripInfo(selectedTrip);
+};
+
   return (
-    <div>
-      <div id="map" style={{ height: '1000px' }}></div>
-      <div>
-        <button onClick={handlePrevious} disabled={currentTripIds.start === 1}>Previous</button>
-        <button onClick={handleNext} disabled={currentTripIds.end >= Object.keys(trips).length}>Next</button>
+<div style={{ position: 'relative' }}>
+  <div id="map" style={{ height: '1300px' }}>
+    {/* Your map component */}
+  </div>
+
+  <div style={{ position: 'absolute', top: '1320px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px'}}>
+    <button onClick={handlePrevious} disabled={currentTripIds.start === 1}
+    style={{border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff' }}>
+      Previous Set of Trips
+      </button>
+    <button onClick={handleNext} disabled={currentTripIds.end >= Object.keys(trips).length} style={{border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff' }}>
+      Next Set of Trips
+      </button>
+     <div style={{ border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff', display: 'flex', alignItems: 'center' }}>
+     <p> Select Trip ID:</p>
+      {/* {Object.keys(trips).map(tripId => (
+      <option key={tripId} value={tripId}>{tripId}</option> */}
+
+{/* This way, the select element will only be rendered when tripinfo is not null, preventing the "Cannot read properties of null" error. */}
+{tripinfo && (
+  <select style={{ overflow: 'auto', backgroundColor: '#2A7EB5', color: '#fff' }} onChange={handleTripSelection}>
+    {tripinfo.map((trip: TripInfo) => (
+      <option key={trip.id} value={trip.id}>{trip.id}</option>
+    ))}
+  </select>
+)}
       </div>
-    </div>
+
+  </div>
+
+  <div style={{ position: 'absolute', top: '100px', left: '10px', zIndex: 1000 }}>
+    <div style={{ border: '1px solid #ccc', borderRadius: '5px', padding: '10px', backgroundColor: '#2A7EB5' , color: '#fff' }}>
+        <p> Trip Information: </p>
+        {selectedTripInfo && (
+      <div>
+        <p>Trip ID: {selectedTripInfo.id}</p>
+        <p>n_coord: {selectedTripInfo.n_coord}</p>
+        <p>Purpose: {selectedTripInfo.purpose}</p>
+        <p>Start: {selectedTripInfo.start}</p>
+        <p>Stop: {selectedTripInfo.stop}</p>
+        <p>User ID: {selectedTripInfo.user_id}</p>
+      </div>
+    )}
+      </div>
+  </div>
+
+      {/* Filters */}
+      <div style={{ position: 'absolute', top: '100px', right: '20px', zIndex: 1000 }}>
+        <div style={{ border: '1px solid #ccc', borderRadius: '35px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff', cursor: 'pointer' }} onClick={toggleFilters}>
+          <p> Filters: </p>
+        </div>
+        {showFilters && (
+          <div style={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '5px', padding: '10px', marginTop: '5px' }}>
+            {/* Gender */}
+            <div>
+              <p>Gender:</p>
+              <label><input type="checkbox" /> Male</label><br></br>
+              <label><input type="checkbox" /> Female</label><br></br>
+            </div>
+
+            {/* Duration */}
+            <div>
+              <p>Duration:</p>
+              <label><input type="checkbox" /> &lt; 5 minutes</label><br></br>
+              <label><input type="checkbox" /> 5-10 minutes</label><br></br>
+              <label><input type="checkbox" /> 10-20 minutes</label><br></br>
+              <label><input type="checkbox" /> 20-60 minutes</label><br></br>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label><input type="checkbox" /> Notes</label>
+            </div>
+
+            {/* Ethnicity */}
+                        <div>
+              <p>Ethnicity:</p>
+              <label><input type="checkbox" /> White</label><br></br>
+              <label><input type="checkbox" /> African American</label><br></br>
+              <label><input type="checkbox" /> Asian</label><br></br>
+              <label><input type="checkbox" /> Native American</label><br></br>
+              <label><input type="checkbox" /> Pacific Islander</label><br></br>
+              <label><input type="checkbox" /> Multi-racial</label><br></br>
+              <label><input type="checkbox" /> Hispanic / Mexican / Latino</label><br></br>
+            </div>
+
+            {/* Cycling Frequency */}
+            <div>
+              <p>Cycling Frequency:</p>
+              <label><input type="checkbox" /> &lt; once a month</label><br></br>
+              <label><input type="checkbox" /> Several times per month</label><br></br>
+              <label><input type="checkbox" /> Several times per week</label><br></br>
+              <label><input type="checkbox" /> Daily</label><br></br>
+            </div>
+
+            {/* Age */}
+            <div>
+              <p>Age:</p>
+              <label><input type="checkbox" /> &lt; 18</label><br></br>
+              <label><input type="checkbox" /> 18-24</label><br></br>
+              <label><input type="checkbox" /> 25-34</label><br></br>
+              <label><input type="checkbox" /> 35-44</label><br></br>
+              <label><input type="checkbox" /> 45-54</label><br></br>
+              <label><input type="checkbox" /> 55-64</label><br></br>
+              <label><input type="checkbox" /> 65+</label>
+            </div>
+
+            {/* Rider Type */}
+            <div>
+              <p>Rider Type:</p>
+              <label><input type="checkbox" /> &lt; Strong & fearless</label><br></br>
+              <label><input type="checkbox" /> Enthused & confident</label><br></br>
+              <label><input type="checkbox" /> Comfortable, but cautious</label><br></br>
+              <label><input type="checkbox" /> Interested, but concerned</label><br></br>
+            </div>
+
+            {/* Commute Purpose */}
+            <div>
+              <p>Trip Purpose:</p>
+              <label><input type="checkbox" /> &lt; Exercise</label><br></br>
+              <label><input type="checkbox" /> Commute</label><br></br>
+              <label><input type="checkbox" /> Social</label><br></br>
+              <label><input type="checkbox" /> School </label><br></br>
+              <label><input type="checkbox" /> Work-Related </label><br></br>
+              <label><input type="checkbox" /> Errand </label><br></br>
+              {/* List of commute purpose checkboxes */}
+            </div>
+          </div>
+        )}
+      </div>
+  
+</div>
   );
 };
 
