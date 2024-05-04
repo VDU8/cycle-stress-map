@@ -12,6 +12,8 @@ const MyMap: React.FC = () => {
   const [step, setStep] = useState<number>(5);
   const [tripId, settripId] = useState<number>(5);
   const mapRef = React.useRef<L.Map | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null); // State to hold error message
+
 
   useEffect(() => {
     const fetchTripWithID = async () => {
@@ -22,6 +24,7 @@ const MyMap: React.FC = () => {
         console.log("Received trip data length:", response.data.length);
       } catch (error) {
         console.log("Error fetching trip data:", error);
+        setMapError("Error fetching trip data");
       }
     };
 
@@ -72,8 +75,32 @@ const MyMap: React.FC = () => {
         const response = await axios.get(url);
         return response.data;
         console.log('')
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching data from OSRM API:', error);
+        if (error.response && error.response.data && error.response.data.message) {
+          setMapError(`Error: ${error.response.data.message}`);
+        } else {
+          setMapError("Error fetching data from OSRM API");
+        }
+        return null;
+      }
+    };
+
+    const miniosrm = async (lngLats: string[]) => {
+      const radiuses = Array(lngLats.length).fill('49');
+      // const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson&annotations=true`;
+      const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson`;
+      try {
+        const response = await axios.get(url);
+        return response.data;
+        console.log('')
+      } catch (error: any) {
+        console.error('Error fetching data from OSRM API:', error);
+        if (error.response && error.response.data && error.response.data.message) {
+          setMapError(`Error: ${error.response.data.message}`);
+        } else {
+          setMapError("Error fetching data from OSRM API");
+        }
         return null;
       }
     };
@@ -131,13 +158,32 @@ const MyMap: React.FC = () => {
     const processChunk = async (chunk: Coordinates[], allLatLngs: LatLngTuple[]) => {
       let lngLatPairs: string[];
     
-      if (trip.length === 1) {
+    if (trip.length > 1 && trip.length < 80) {
         lngLatPairs = createPairsmini(chunk);
+        const minidata = await miniosrm(lngLatPairs);
+        if (minidata && minidata.code === 'Ok' && minidata.matchings && minidata.matchings.length > 0) {
+          const coordinates = minidata.matchings[0].geometry.coordinates;
+          const latLngs: LatLngTuple[] = coordinates.map((coordinate: number[]) => [coordinate[1], coordinate[0]]);
+          allLatLngs.push(...latLngs);
+          const matchings = minidata.matchings[0];
+        // matchings.legs.forEach((leg: any) => {
+        //   const legNodes = leg.annotation.nodes;
+        //   console.log('Nodes in this leg:', legNodes);
+        // });
       } else {
-        lngLatPairs = createPairs(chunk);
+        console.error('OSRM response is not as expected:', minidata);
+      }
       }
     
-      const data = await sendOsrmRequest(lngLatPairs);
+      else if (trip.length === 1) {
+        const coordinate = trip[0]; // Assuming the single coordinate is at index 0
+        const latLng: LatLngTuple = [coordinate.latitude, coordinate.longitude]; // Explicitly cast to LatLngTuple
+        console.log(latLng)
+      }
+    
+     else {
+        lngLatPairs = createPairs(chunk);
+        const data = await sendOsrmRequest(lngLatPairs);
       if (data && data.code === 'Ok' && data.matchings && data.matchings.length > 0) {
         const coordinates = data.matchings[0].geometry.coordinates;
         const latLngs: LatLngTuple[] = coordinates.map((coordinate: number[]) => [coordinate[1], coordinate[0]]);
@@ -150,6 +196,9 @@ const MyMap: React.FC = () => {
       } else {
         console.error('OSRM response is not as expected:', data);
       }
+      }
+    
+      
     };
 
     divideTripIntoParts();
@@ -162,24 +211,39 @@ const MyMap: React.FC = () => {
 
   const handleTripIdChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     settripId(Number(event.target.value));
+    setMapError("");
   };
 
 
   return (
-    <div>
-      <div id="map" style={{ height: '1000px' }}></div>
-      <input type="range" min="3" max="25" value={step} onChange={handleStepChange} />
-      <p>Window Size: {step}</p>
-      <br></br>
-      <p>Select Trip ID</p>
-      <select value={tripId} onChange={handleTripIdChange}>
-          {/* Generate options for trip IDs from 1 to 2000 */}
-          {Array.from({ length: 2000 }, (_, index) => index + 1).map((id) => (
-            <option key={id} value={id}>{id}</option>
-          ))}
-        </select>
-     
-    </div>
+  <div>
+    
+
+    {/* Map */}
+    <div id="map" style={{ height: '1000px' }}></div>
+
+    {/* Range input */}
+    <input type="range" min="3" max="25" value={step} onChange={handleStepChange} />
+    <p>Window Size: {step}</p>
+    <br />
+
+    {/* Trip ID select */}
+    <p>Select Trip ID</p>
+    <select value={tripId} onChange={handleTripIdChange}>
+      {/* Generate options for trip IDs from 1 to 2000 */}
+      {Array.from({ length: 2858 }, (_, index) => index + 1).map((id) => (
+        <option key={id} value={id}>{id}</option>
+      ))}
+    </select>
+
+    {/* Error popup */}
+    {mapError && (
+      <div className="error-popup">
+        <p>{mapError}</p>
+        <button onClick={() => setMapError(null)}>Close</button>
+      </div>
+    )}
+  </div>
   );
 };
 
