@@ -14,3 +14,46 @@
     font-size: calc(10px + 2vmin);
     color: white;
   }
+
+  .loading-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+.bike-container {
+  position: relative;
+  width: 300px; /* Adjust width as needed */
+  height: 50px; /* Adjust height as needed */
+  overflow: hidden;
+}
+
+.bike {
+  width: 50px; /* Adjust width of the bike icon */
+  height: 50px; /* Adjust height of the bike icon */
+  background-image: url('./bike.png'); /* Replace 'bike-icon.png' with the path to your bike icon */
+  background-size: cover;
+  position: absolute;
+  top: 0;
+  left: -50px; /* Start the bike icon off-screen on the left */
+  animation: moveRight 10s linear infinite; /* Adjust animation duration and timing function as needed */
+}
+
+@keyframes moveRight {
+  0% {
+    left: -50px; /* Start position off-screen on the left */
+  }
+  100% {
+    left: calc(100% + 50px); /* Move off-screen on the right */
+  }
+}
+
+.mapanim {
+  width: 80px; /* Adjust width of the bike icon */
+  height: 80px; /* Adjust height of the bike icon */
+  background-image: url('./Animation.gif'); /* Replace 'bike-icon.png' with the path to your bike icon */
+  background-size: cover;
+  position: absolute;
+  bottom: 120px; /* Adjust as needed to position the animation below the message */
+
+}

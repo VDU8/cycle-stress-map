@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import L, { LatLngTuple, LatLngExpression } from 'leaflet';
+import "./Map.css";
 
 interface Coordinates {
   latitude: number;
@@ -13,6 +14,7 @@ const MyMap: React.FC = () => {
   const [tripId, settripId] = useState<number>(5);
   const mapRef = React.useRef<L.Map | null>(null);
   const [mapError, setMapError] = useState<string | null>(null); // State to hold error message
+  const [loading, setLoading] = useState<boolean>(false); // State to track loading status
 
 
   useEffect(() => {
@@ -68,13 +70,16 @@ const MyMap: React.FC = () => {
 
 
     const sendOsrmRequest = async (lngLats: string[]) => {
+      setLoading(true);
       const radiuses = Array(lngLats.length).fill('49');
       // const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson&annotations=true`;
       const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson`;
       try {
         const response = await axios.get(url);
+        setLoading(false);
         return response.data;
-        console.log('')
+        
+        // console.log('')
       } catch (error: any) {
         console.error('Error fetching data from OSRM API:', error);
         if (error.response && error.response.data && error.response.data.message) {
@@ -87,13 +92,15 @@ const MyMap: React.FC = () => {
     };
 
     const miniosrm = async (lngLats: string[]) => {
+      setLoading(true);
       const radiuses = Array(lngLats.length).fill('49');
       // const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson&annotations=true`;
       const url = `http://localhost:5000/match/v1/bicycle/${lngLats.join(';')}?overview=full&radiuses=${radiuses.join(';')}&geometries=geojson`;
       try {
         const response = await axios.get(url);
         return response.data;
-        console.log('')
+        
+        // console.log('')
       } catch (error: any) {
         console.error('Error fetching data from OSRM API:', error);
         if (error.response && error.response.data && error.response.data.message) {
@@ -101,6 +108,7 @@ const MyMap: React.FC = () => {
         } else {
           setMapError("Error fetching data from OSRM API");
         }
+        setLoading(false);
         return null;
       }
     };
@@ -129,6 +137,7 @@ const MyMap: React.FC = () => {
           map.fitBounds(polyline.getBounds());
         }
       }
+      setLoading(false);
     };
 
     let parts = 1;
@@ -225,6 +234,7 @@ const MyMap: React.FC = () => {
     {/* Range input */}
     <input type="range" min="3" max="25" value={step} onChange={handleStepChange} />
     <p>Window Size: {step}</p>
+    
     <br />
 
     {/* Trip ID select */}
@@ -235,6 +245,18 @@ const MyMap: React.FC = () => {
         <option key={id} value={id}>{id}</option>
       ))}
     </select>
+
+    {/* Loading animation */}
+    {loading && (
+        <div className="loading-animation">
+           <div className="bike-container">
+            <div className="bike"></div>
+          </div>
+          <p>OSRM is working its magic. Please wait...</p>
+          <div className="mapanim"></div>
+          
+        </div>
+      )}
 
     {/* Error popup */}
     {mapError && (

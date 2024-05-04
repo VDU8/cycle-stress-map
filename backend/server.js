@@ -101,44 +101,39 @@ app.get("/trip/:trip_id", (req, res) => {
   });
 });
 
-// app.get("/trip/:trip_id", (req, res) => {
-//   const tripId = req.params.trip_id;
-//   const query = `SELECT response FROM osr WHERE trip_id=1;`;
-
-//   // Send query to db connection
-//   db.query(query, (err, data) => {
-//     if (err) {
-//       return res.json(err); // When error occurs send client error code
-//     }
-
-//     // Parse the JSON string into a JavaScript object
-//     const responseData = JSON.parse(data[0].response);
-
-//     return res.json(responseData);
-//   });
-// });
 
 //                                                                      TripID with all parts
 
-// app.get("/trip/:trip_id", (req, res) => {
-//   const tripId = req.params.trip_id;
-//   const query = `SELECT response, FROM osr WHERE trip_id=1;`;
+app.get("/trippagination", (req, res) => {
+  const { page = 1, limit = 200 } = req.query; // Get page number and limit from query parameters
+  const offset = (page - 1) * limit; // Calculate offset based on page number and limit
+  const query = `SELECT trip_id, response FROM osr WHERE response LIKE '{"code": "Ok",%' LIMIT ${limit} OFFSET ${offset};`; // Use LIMIT and OFFSET in the SQL query
 
-//   // Send query to db connection
-//   db.query(query, [tripId], (err, data) => {
-//     if (err) {
-//       return res.json(err); // When error occurs send client error code
-//     }
+  // Send query to db connection
+  db.query(query, (err, data) => {
+    if (err) {
+      return res.json(err); // When error occurs, send client error code
+    }
 
-//     // Combine all response parts into a single array
-//     const responseData = data.map(row => JSON.parse(row.response));
+    // Organize data by trip ID
+    const tripsData = {};
+    data.forEach(row => {
+      const tripId = row.trip_id;
+      const response = JSON.parse(row.response);
+      
+      if (!tripsData[tripId]) {
+        tripsData[tripId] = [];
+      }
+      tripsData[tripId].push(response);
+    });
 
-//     return res.json(responseData);
-//   });
-// });
+    return res.json(tripsData);
+  });
+});
 
 app.get("/trips", (req, res) => {
-  const query = `SELECT trip_id, response FROM osr LIMIT 1000;`;
+  const query = `SELECT trip_id, response FROM osr LIMIT 200;`;
+  // const query = `SELECT trip_id, response FROM osr WHERE trip_id BETWEEN 784 AND 789;`;
 
   // Send query to db connection
   db.query(query, (err, data) => {

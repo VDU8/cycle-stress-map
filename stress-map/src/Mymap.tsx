@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import L, { LatLngTuple } from 'leaflet';
 
+
 interface Coordinates {
   latitude: number;
   longitude: number;
@@ -44,11 +45,12 @@ const MyMap: React.FC = () => {
   const [trips, setTrips] = useState
   
   <Record<string, Trip[]>>({});
-  const [currentTripIds, setCurrentTripIds] = useState({ start: 1, end: 50 });
+  const [currentTripIds, setCurrentTripIds] = useState({ start: parseInt(Object.keys(trips)[0]), end: Object.keys(trips).length });
   const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
 
   const [tripinfo, setTripInfo] = useState<any>(null);
   const [selectedTripInfo, setSelectedTripInfo] = useState<TripInfo | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [userinfo, setUserInfo] = useState<any>(null);
   const [selectedUserInfo, setSelectedUserInfo] = useState<UserInfo | null>(null);
@@ -72,19 +74,43 @@ const toggleFilters = () => {
 
   const mapRef = React.useRef<L.Map | null>(null); // Ref to store map instance
 
-  useEffect(() => {
+  {/* useEffect(() => {
     const fetchTripWithID = async () => {
       try {
         const response = await axios.get<Record<string, Trip[]>>("http://localhost:4000/trips");
         setTrips(response.data);
         console.log("Received trip data:", response.data);
+        if (Object.keys(response.data).length > 0) {
+          const tripIds = Object.keys(response.data);
+          setCurrentTripIds({ start: parseInt(tripIds[0]), end: parseInt(tripIds[tripIds.length - 1]) });
+        }
       } catch (error) {
         console.log("Error fetching trip data:", error);
       }
     };
 
     fetchTripWithID();
-  }, []);
+  }, []); */}
+
+useEffect(() => {
+  const fetchTrips = async (page = 1, limit = 200) => { // Modify function to accept pagination parameters
+    try {
+      const response = await axios.get<Record<string, Trip[]>>(`http://localhost:4000/trippagination?page=${currentPage}&limit=${limit}`); // Update URL with pagination parameters
+      setTrips(response.data);
+      console.log("Received trip data:", response.data);
+      if (Object.keys(response.data).length > 0) {
+        const tripIds = Object.keys(response.data);
+        setCurrentTripIds({ start: parseInt(tripIds[0]), end: parseInt(tripIds[tripIds.length - 1]) });
+      }
+    } catch (error) {
+      console.log("Error fetching trip data:", error);
+    }
+  };
+
+  fetchTrips(); // Call function with default parameters to fetch the first page of trips
+}, [currentPage]);
+
+console.log("current page", currentPage)
 
   useEffect(() => {
   const fetchTripInfo = async () => {
@@ -169,7 +195,7 @@ const toggleFilters = () => {
           // Add polyline to the map with assigned color
           const polyline = L.polyline(allLatLngs, { color }).addTo(map);
           if (selectedTripId === parseInt(tripId)) {
-            polyline.setStyle({ weight: 18, opacity: 1 }); // Adjust the style as needed
+            polyline.setStyle({ weight: 12, opacity: 1 }); // Adjust the style as needed
             setHighlightedPolyline(polyline);
           }
 
@@ -210,14 +236,22 @@ const toggleFilters = () => {
     return color;
   };
 
-  // Handle clicking Next button
-  const handleNext = () => {
-    setCurrentTripIds(prevIds => ({ start: prevIds.start + 10, end: prevIds.end + 10 }));
-  };
+  // // Handle clicking Next button
+  // const handleNext = () => {
+  //   setCurrentTripIds(prevIds => ({ start: prevIds.start + 10, end: prevIds.end + 10 }));
+  // };
   
-  // Handle clicking Previous button
-  const handlePrevious = () => {
-    setCurrentTripIds(prevIds => ({ start: Math.max(1, prevIds.start - 10), end: Math.max(10, prevIds.end - 10) }));
+  // // Handle clicking Previous button
+  // const handlePrevious = () => {
+  //   setCurrentTripIds(prevIds => ({ start: Math.max(1, prevIds.start - 10), end: Math.max(10, prevIds.end - 10) }));
+  // };
+
+  const handleNextPage = () => {
+    setCurrentPage(prevPage => prevPage + 1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prevPage => Math.max(1, prevPage - 1));
   };
 
   // Add an event handler to update the selected Trip ID's information
@@ -243,14 +277,37 @@ const handleTripSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     {/* Your map component */}
   </div>
 
+
   <div style={{ position: 'absolute', top: '1320px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px'}}>
-    <button onClick={handlePrevious} disabled={currentTripIds.start === 1}
-    style={{border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff' }}>
-      Previous Set of Trips
-      </button>
-    <button onClick={handleNext} disabled={currentTripIds.end >= Object.keys(trips).length} style={{border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff' }}>
-      Next Set of Trips
-      </button>
+  <button onClick={handlePreviousPage}
+    style={{
+      border: '1px solid #ccc',
+      borderRadius: '20px',
+      padding: '10px',
+      backgroundColor: '#2A7EB5',
+      color: '#fff',
+      opacity: currentPage === 1 ? 0.5 : 1, // Disable button if currentPage is 1
+      cursor: currentPage === 1 ? 'not-allowed' : 'pointer' // Change cursor if button is disabled
+    }}
+    disabled={currentPage === 1} // Disable button if currentPage is 1
+  >
+    Previous Set of Trips
+  </button>
+  <button onClick={handleNextPage}
+  style={{
+    border: '1px solid #ccc',
+    borderRadius: '20px',
+    padding: '10px',
+    backgroundColor: '#2A7EB5',
+    color: '#fff',
+    opacity: currentPage === 87 ? 0.5 : 1, // Disable button if currentPage is 87
+    cursor: currentPage === 87 ? 'not-allowed' : 'pointer' // Change cursor if button is disabled
+  }}
+  disabled={currentPage === 87}
+>
+  Next Set of Trips
+</button>
+
      <div style={{ border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff', display: 'flex', alignItems: 'center' }}>
      <p> Select Trip ID:</p>
       {/* {Object.keys(trips).map(tripId => (
