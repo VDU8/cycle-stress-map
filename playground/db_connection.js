@@ -1,3 +1,7 @@
+// This file is to test the SQL table what kind of response we recieve
+
+
+
 var mysql = require('mysql');
 const fs = require('fs');
 var coords;
