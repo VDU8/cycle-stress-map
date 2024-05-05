@@ -73,8 +73,6 @@ app.get("/usernote", (req, res) => {
   });
 });
 
-
-
 app.get("/trip", (req, res) => {
   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
   const query =
@@ -87,7 +85,7 @@ app.get("/trip", (req, res) => {
   });
 });
 
-// // Get trip coordinates with certain trip_id
+// // Get trip coordinates with certain trip_id this is used in Snap.tsx
 app.get("/trip/:trip_id", (req, res) => {
   const tripId = req.params.trip_id;
   // Query to get all lat and long data from coords with matching trip_id and only starting at 50 max 150 coords
@@ -102,7 +100,7 @@ app.get("/trip/:trip_id", (req, res) => {
 });
 
 
-//                                                                      TripID with all parts
+// TripID with all parts this is used in Mymap.tsx
 
 app.get("/trippagination", (req, res) => {
   const { page = 1, limit = 200 } = req.query; // Get page number and limit from query parameters
