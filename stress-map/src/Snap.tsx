@@ -8,7 +8,7 @@ interface Coordinates {
   longitude: number;
   trip_id: number;
 }
-const MyMap: React.FC = () => {
+const Snap: React.FC = () => {
   const [trip, setTrip] = useState<Coordinates[]>([]);
   const [step, setStep] = useState<number>(5);
   const [tripId, settripId] = useState<number>(5);
@@ -269,4 +269,4 @@ const MyMap: React.FC = () => {
   );
 };
 
-export default MyMap;
+export default Snap;

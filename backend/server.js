@@ -50,7 +50,7 @@ app.get("/tripnote", (req, res) => {
 });
 
 app.get("/notescomments", (req, res) => {
-  // Query to get all lat and long data from note table
+  // Query to get all lat and long data from noteinformation table
   const query = "SELECT user_id, recorded, latitude, longitude, speed, details, text, note_type FROM noteinformation";
   
 
@@ -62,7 +62,7 @@ app.get("/notescomments", (req, res) => {
 });
 
 app.get("/usernote", (req, res) => {
-  // Query to get all lat and long data from note table
+  // Query to get all lat and long data from userinformation table
   const query = "SELECT user_id, created, device, email, schoolZIP, workZIP, agetype, cycling_freqtype, ethnicitytype, gendertype, incometype, rider_historytype, rider_info FROM userinformation";
   
 

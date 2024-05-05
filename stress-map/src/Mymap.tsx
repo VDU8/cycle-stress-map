@@ -237,15 +237,6 @@ console.log("current page", currentPage)
   };
 
   // // Handle clicking Next button
-  // const handleNext = () => {
-  //   setCurrentTripIds(prevIds => ({ start: prevIds.start + 10, end: prevIds.end + 10 }));
-  // };
-  
-  // // Handle clicking Previous button
-  // const handlePrevious = () => {
-  //   setCurrentTripIds(prevIds => ({ start: Math.max(1, prevIds.start - 10), end: Math.max(10, prevIds.end - 10) }));
-  // };
-
   const handleNextPage = () => {
     setCurrentPage(prevPage => prevPage + 1);
   };
@@ -310,16 +301,14 @@ const handleTripSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
 
      <div style={{ border: '1px solid #ccc', borderRadius: '20px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff', display: 'flex', alignItems: 'center' }}>
      <p> Select Trip ID:</p>
-      {/* {Object.keys(trips).map(tripId => (
-      <option key={tripId} value={tripId}>{tripId}</option> */}
 
-{/* This way, the select element will only be rendered when tripinfo is not null, preventing the "Cannot read properties of null" error. */}
-{tripinfo && (
-  <select style={{ overflow: 'auto', backgroundColor: '#2A7EB5', color: '#fff' }} onChange={handleTripSelection}>
-    {tripinfo.map((trip: TripInfo) => (
-      <option key={trip.id} value={trip.id}>{trip.id}</option>
-    ))}
-  </select>
+    {/* This way, the select element will only be rendered when tripinfo is not null, preventing the "Cannot read properties of null" error. */}
+    {tripinfo && (
+      <select style={{ overflow: 'auto', backgroundColor: '#2A7EB5', color: '#fff' }} onChange={handleTripSelection}>
+        {tripinfo.map((trip: TripInfo) => (
+          <option key={trip.id} value={trip.id}>{trip.id}</option>
+        ))}
+      </select>
 )}
       </div>
 
