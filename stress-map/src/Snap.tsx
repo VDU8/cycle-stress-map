@@ -237,14 +237,16 @@ const Snap: React.FC = () => {
     
     <br />
 
-    {/* Trip ID select */}
+    {/* Trip ID select */}<div style={{ border: '1px solid #ccc', borderRadius: '10px', width:'200px', padding: '10px', backgroundColor: '#2A7EB5', color: '#fff', display: 'flex', alignItems: 'center' }}>
     <p>Select Trip ID</p>
-    <select value={tripId} onChange={handleTripIdChange}>
+    <select style={{ overflow: 'auto', backgroundColor: '#2A7EB5', color: '#fff' }} value={tripId} onChange={handleTripIdChange}>
       {/* Generate options for trip IDs from 1 to 2000 */}
       {Array.from({ length: 2858 }, (_, index) => index + 1).map((id) => (
         <option key={id} value={id}>{id}</option>
       ))}
     </select>
+    </div>
+    
 
     {/* Loading animation */}
     {loading && (
